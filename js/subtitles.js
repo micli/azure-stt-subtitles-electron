@@ -162,7 +162,7 @@
     }
 
     function getSubtitlesFromResult(result) {
-        if (result.translations.length === 0) {
+        if (result.translations === undefined) {
             return result.text;
         } else {
             var key = result.translations.privMap.privKeys[0];
