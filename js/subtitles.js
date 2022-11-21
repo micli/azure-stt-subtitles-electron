@@ -9,6 +9,7 @@
     const azureCognitionSubscriptionKey = settings.azureKey || '';
     const azureRegion = settings.azureRegion || '';
     const sourceLang = settings.sourceLang || 'en-US'
+    const destLang = settings.destLang || 'zh-CN'
     const backgroundColor = settings.backgroundColor || 'transparent';
     const clearTime = settings.clearTimeSeconds || 4;
     const maxWords = settings.maxWords || 250;
@@ -22,7 +23,7 @@
         blacklistRegex = new RegExp('(\\b)(' + regex + ')(\\b)', 'gi');
     }
     let urlStyle = uripart('style') || undefined;
-    let subtitleStyle = urlStyle || settings.customStlye;
+    let subtitleStyle = urlStyle || settings.customStyle;
 
     // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     // LOGIC
@@ -34,15 +35,18 @@
     var subtitles = document.querySelector('#subtitle');
 
     document.body.style.backgroundColor = backgroundColor;
-    document.addEventListener("DOMContentLoaded", function () {
+    document.addEventListener("DOMContentLoaded", function() {
         if (!!window.SpeechSDK)
             SpeechSDK = window.SpeechSDK;
 
         var speechConfig;
         try {
-            speechConfig = SpeechSDK.SpeechConfig.fromSubscription(azureCognitionSubscriptionKey, azureRegion);
-        }
-        catch (err) {
+            if (sourceLang === destLang) {
+                speechConfig = SpeechSDK.SpeechConfig.fromSubscription(azureCognitionSubscriptionKey, azureRegion);
+            } else {
+                speechConfig = SpeechSDK.SpeechTranslationConfig.fromSubscription(azureCognitionSubscriptionKey, azureRegion);
+            }
+        } catch (err) {
             subtitles.innerHTML = 'Connection refused. Please check subscription key + region and reconnect.';
         }
 
@@ -52,41 +56,40 @@
             speechConfig.setServiceProperty('punctuation', 'explicit', SpeechSDK.ServicePropertyChannel.UriQueryParameter);
         speechConfig.setProfanity(profanityFilter === true ? SpeechSDK.ProfanityOption.Masked : SpeechSDK.ProfanityOption.Raw);
         var audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
-        recognizer = new SpeechSDK.SpeechRecognizer(speechConfig, audioConfig);
+        if (sourceLang === destLang) {
+            recognizer = new SpeechSDK.SpeechRecognizer(speechConfig, audioConfig);
+        } else {
+            speechConfig.speechRecognitionLanguage = sourceLang;
+            speechConfig.addTargetLanguage(destLang);
+            recognizer = new SpeechSDK.TranslationRecognizer(speechConfig, audioConfig);
+        }
 
-        // Set Styles of Subtiltle Text
+
+        // Set styles of subtitles text
         updateSubtitleStyle(subtitleStyle);
 
         recognizer.recognizing = (s, e) => {
-            //console.log(`RECOGNIZING: Text=${e.result.text}`);
-            updateSubtitles(e.result.text, true);
+            var subtitles = getSubtitlesFromResult(e.result);
+            // console.log(`RECOGNIZING: Text=${subtitles}`);
+            updateSubtitles(subtitles, true);
             if (idleTimeout) {
                 clearTimeout(idleTimeout);
                 idleTimeout = null;
             }
-            idleTimeout = setTimeout(function () {
+            idleTimeout = setTimeout(function() {
                 recognizer.stopContinuousRecognitionAsync();
-                //connectBtn.disabled = false;
-                //disconnectBtn.disabled = true;
             }, autoShutoffTime * 60 * 1000);
         };
 
         recognizer.recognized = (s, e) => {
-            //console.log(`RECOGNIZED: Text=${JSON.stringify(e.result)}`);
+            // console.log(`RECOGNIZED: Text=${JSON.stringify(e.result)}`);
             if (e.result.reason !== SpeechSDK.ResultReason.NoMatch) {
-                updateSubtitles(e.result.text, false);
+                var subtitles = getSubtitlesFromResult(e.result);
+                updateSubtitles(subtitles, false);
             };
         };
 
         recognizer.canceled = (s, e) => {
-            // console.log(`CANCELED: Reason=${e.reason}`);
-
-            // if (e.reason == CancellationReason.Error) {
-            //     console.log(`"CANCELED: ErrorCode=${e.errorCode}`);
-            //     console.log(`"CANCELED: ErrorDetails=${e.errorDetails}`);
-            //     console.log("CANCELED: Did you update the subscription info?");
-            // }
-
             recognizer.stopContinuousRecognitionAsync();
             subtitles.innerHTML = 'Connection refused. Please check subscription key + region and reconnect.';
         };
@@ -104,26 +107,24 @@
             updateSubtitles('Connected - Begin Speaking', true);
         };
 
-        window.addEventListener('obsSourceActiveChanged', function (event) {
+        window.addEventListener('obsSourceActiveChanged', function(event) {
             if (event.detail.active === true) {
                 location.reload();
-            }
-            else {
+            } else {
                 recognizer.stopContinuousRecognitionAsync();
             }
         });
 
-        connectTimeout = setTimeout(function () {
+        connectTimeout = setTimeout(function() {
             subtitles.innerHTML = 'Unable to connect due to network issue or unable to gain microphone access.';
         }, 15000);
 
         var userAgent = navigator.userAgent.toLowerCase();
         if (userAgent.indexOf(' electron/') > -1) {
             recognizer.startContinuousRecognitionAsync();
-        }
-        else {
+        } else {
             subtitles.innerHTML = 'Click anywhere to start.';
-            document.addEventListener('click', function () {
+            document.addEventListener('click', function() {
                 recognizer.startContinuousRecognitionAsync();
             });
         }
@@ -154,10 +155,19 @@
     function filterBlacklist(text) {
         if (blacklistRegex === undefined) return text;
 
-        let newtext = text.replace(blacklistRegex, function ($2) {
+        let newtext = text.replace(blacklistRegex, function($2) {
             return $2.replace(/./g, '*')
         });
         return newtext;
+    }
+
+    function getSubtitlesFromResult(result) {
+        if (result.translations.length === 0) {
+            return result.text;
+        } else {
+            var key = result.translations.privMap.privKeys[0];
+            return result.translations.get(key);
+        }
     }
 
     // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=

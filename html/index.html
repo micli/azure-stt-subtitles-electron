@@ -2,7 +2,7 @@
 <html>
 
 <head>
-    <title>OBS STT Subtitles</title>
+    <title>Azure Speech Subtitles</title>
 </head>
 
 <meta charset="utf-8">
@@ -38,19 +38,21 @@
                     <label for="azureRegion">Azure Region</label>
                 </div>
                 <div class="input-field col s6">
-                    <input id="sourceLang" type="text" placeholder="Ex: 'en-US'" class="white-text text-darken-1">
+                    <input id="sourceLang" type="text" required placeholder="Ex: 'en-US'" class="white-text text-darken-1">
                     <label for="sourceLang">Source Language</label>
+                </div>
+                <div class="input-field col s6">
+                    <input id="destLang" type="text" required placeholder="Ex: 'zh-CN'" class="white-text text-darken-1">
+                    <label for="destLang">Subtitle Language</label>
                 </div>
             </div>
             <div class="row">
                 <div class="input-field col s6">
-                    <input id="clearTime" type="number" class="white-text text-darken-1" required aria-required="true"
-                        min=2>
+                    <input id="clearTime" type="number" class="white-text text-darken-1" required aria-required="true" min=2>
                     <label for="clearTime">Clear Time (seconds)</label>
                 </div>
                 <div class="input-field col s6">
-                    <input id="maxWords" type="number" class="white-text text-darken-1" required aria-required="true"
-                        min=1>
+                    <input id="maxWords" type="number" class="white-text text-darken-1" required aria-required="true" min=1>
                     <label for="maxWords">Max Words</label>
                 </div>
             </div>
@@ -76,8 +78,7 @@
             </div>
             <div class="row">
                 <div class="input-field col s12">
-                    <textarea id="blacklistWords" placeholder="" type="text"
-                        class="materialize-textarea white-text text-darken-1"></textarea>
+                    <textarea id="blacklistWords" placeholder="" type="text" class="materialize-textarea white-text text-darken-1"></textarea>
                     <label for="blacklistWords">Blacklist Words</label>
                     <span class="helper-text white-text text-darken-1">A list of comma delineated words to block from
                         STT. Ex: one,two,three,test*,*rap</span>
@@ -85,8 +86,7 @@
             </div>
             <div class="row">
                 <div class="input-field col s12">
-                    <textarea id="customStyle" placeholder="Ex: color:#FFFFFF;font-weight:500;" type="text"
-                        class="materialize-textarea white-text text-darken-1"></textarea>
+                    <textarea id="customStyle" placeholder="Ex: color:#FFFFFF;font-weight:500;" type="text" class="materialize-textarea white-text text-darken-1"></textarea>
                     <label for="customStyle">Custom Subtitle Style CSS</label>
                     <span class="helper-text white-text text-darken-1">Applies any valid css without brackets to the
                         subtitle text</span>
@@ -96,19 +96,18 @@
                 <button class="btn waves-effect waves-light" name="action" type="submit" id="saveSettingsBtn">Save
                     <i class="material-icons right">save</i>
                 </button>
-                <a class="btn waves-effect waves-light" name="action" id="subtitlesBtn" href="./subtitles.html"
-                    target="_blank">Start Subtitles
+                <a class="btn waves-effect waves-light" name="action" id="subtitlesBtn">Start Subtitles
                     <i class="material-icons right">open_in_new</i>
                 </a>
             </div>
         </form>
     </div>
-    <p class="credit">Made by Y0dax - v2.1.0</p>
+    <p class="credit"></p>
     <script src="../js/materialize.js"></script>
     <script src="../js/settings.js"></script>
     <script>
         // You can also require other files to run in this process
-        require('../js/homepage.js')
+        require('../js/homepage')
     </script>
 </body>
 
