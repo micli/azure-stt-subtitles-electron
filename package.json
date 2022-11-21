@@ -5,15 +5,23 @@
   "main": "main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "electron .",
-    "package-win": "electron-packager . AzureSTTSubtitles --overwrite --platform=win32 --arch=x64 --icon=media/topic.ico --prune=true --out=release-builds"
+    "start": "electron-forge start",
+    "package-win": "electron-packager . AzureSTTSubtitles --overwrite --platform=win32 --arch=x64 --icon=media/topic.ico --prune=true --out=release-builds",
+    "package": "electron-forge package",
+    "make": "electron-forge make"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "electron": "^10.4.7",
-    "electron-packager": "^15.1.0"
+    "@electron-forge/cli": "^6.0.3",
+    "@electron-forge/maker-deb": "^6.0.3",
+    "@electron-forge/maker-rpm": "^6.0.3",
+    "@electron-forge/maker-squirrel": "^6.0.3",
+    "@electron-forge/maker-zip": "^6.0.3",
+    "electron": "^10.4.7"
   },
-  "dependencies": {}
+  "dependencies": {
+    "electron-squirrel-startup": "^1.0.0"
+  }
 }
